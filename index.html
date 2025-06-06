@@ -476,8 +476,13 @@
       let standPrice, standLabel;
       if (selectedPipeSize === 400) {
         standPrice = prices.stand[400];
-        standLabel = "साधा स्टँड";
-      } else if (selectedStandShape === 'Y' && selectedPipeSize === 600) {
+        standLabel = "स्टँड";
+      } 
+      else if (selectedPipeSize === 800) {
+        standPrice = prices.stand[800];
+        standLabel = "स्टँड";      
+
+      else if (selectedStandShape === 'Y' && selectedPipeSize === 600) {
         standPrice = prices.stand[600][selectedYStandWidth];
         standLabel = selectedYStandWidth === 'Y6' ? '6 इंच Y स्टँड' : '4 इंच Y स्टँड';
       } else {
