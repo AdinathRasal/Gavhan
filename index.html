@@ -14,7 +14,8 @@
     }
 
     .container {
-      max-width: 600px;
+      width: 400px;
+      max-width: 700px;
       margin: 20px auto;
       background: #fff;
       padding: 25px;
@@ -171,11 +172,12 @@
       <button class="btn" onclick="showSummary()">पुढे</button>
     </div>
 
-    <div class="step" id="step7">
+    <div class="step" id="step7" style="width:400px; max-width:400px;">
       <div id="summary" class="summary-content"></div>
 
       <label for="transportCost">वाहतूक खर्च (₹):</label>
-      <input type="number" id="transportCost" placeholder="उदा. 500" oninput="updateTotal()">
+      <input type="number" id="transportCost" oninput="updateTotal()">
+
       <div id="total"></div>
       <label>ग्राहकाचे नाव:</label>
       <div style="display: flex;">
@@ -189,10 +191,35 @@
         <button class="mic-btn" onclick="startVoicePhone()">🎤</button>
       </div>
 
-      <button class="btn" onclick="sendWhatsApp()">व्हाट्सअ‍ॅप वर पाठवा</button>
+      <label>पेमेंट स्थिती:</label>
+      <div style="margin-bottom:10px;">
+        <input type="radio" id="paymentGiven" name="paymentStatus" value="पेमेंट दिले">
+        <label for="paymentGiven">पेमेंट दिले</label><br>
+        <input type="radio" id="paymentPending" name="paymentStatus" value="पेमेंट बाकी" checked>
+        <label for="paymentPending">पेमेंट बाकी</label>
+
+      </div>
+
+      <div>
+        <label for="paidAmount">दिलेली रक्कम (₹):</label>
+        <input type="number" id="paidAmount" style="width:100%; padding:10px; font-size:16px;"
+          placeholder="एकूण रक्कम आपोआप येईल">
+      </div>
+
+      <button class="btn" onclick="generateInvoiceImage()">कोटेशन इमेज तयार करा</button>
+      <button class="btn" onclick="openWhatsAppChat()">व्हाट्सअ‍ॅप चॅट उघडा</button>
       <button class="btn reset" onclick="resetForm()">रीसेट</button>
+
+
     </div>
+    <div id="invoicePreview"
+      style="display:none; background:#fff; padding:20px; width:500px; max-width:500px; box-sizing:border-box;">
+    </div>
+
+
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
 
   <script>
     let currentStep = 2;
@@ -202,11 +229,11 @@
     let step_numder = 2
 
     const prices = {
-      pipe: { 400: 1000, 600: 1400, 700: 1900, 800: 3200 },
+      pipe: { 400: 1000, 600: 1400, 700: 1900, 800: 2200 },
       stand: {
         400: 200,
         600: { Square: 500, Y6: 450, Y4: 350 },
-        700: { Square: 400, Y: 500 },
+        700: { Square: 600, Y: 500 },
         800: 900
       },
       cap: { 400: 50, 600: 100, 700: 150, 800: 250 }
@@ -288,11 +315,11 @@
         <button class="btn" onclick="nextStep()">पुढे</button>
       `;
       const s = document.getElementById("standQty");
-      for (let i = 0; i <= 20; i++) {
+      for (let i = 0; i <= 100; i++) {
         const opt = document.createElement("option");
         opt.value = i;
         opt.text = i;
-        if (i === Math.min(qty + 1, 20)) opt.selected = true;
+        if (i === qty + 1) opt.selected = true;
         s.appendChild(opt);
       }
     }
@@ -307,11 +334,11 @@
       `;
       const s = document.getElementById("standQty");
       s.innerHTML = "";
-      for (let i = 0; i <= 20; i++) {
+      for (let i = 0; i <= 100; i++) {
         const opt = document.createElement("option");
         opt.value = i;
         opt.text = i;
-        if (i === Math.min(qty + 1, 20)) opt.selected = true;
+        if (i === qty + 1) opt.selected = true;
         s.appendChild(opt);
       }
     }
@@ -320,6 +347,7 @@
       const standQty = parseInt(document.getElementById("standQty").value);
       const capsQty = parseInt(document.getElementById("capsQty").value);
       const transport = parseInt(document.getElementById("transportCost")?.value || 0);
+
 
       const pipePrice = prices.pipe[selectedPipeSize];
       let standPrice;
@@ -377,44 +405,48 @@
 
       const capPrice = prices.cap[selectedPipeSize];
       const transport = parseInt(document.getElementById("transportCost")?.value || 0);
+
       const pipeTotal = pipeQty * pipePrice;
       const standTotal = standQty * standPrice;
       const capTotal = capsQty * capPrice;
       const total = pipeTotal + standTotal + capTotal + transport;
 
+
+
+
       document.getElementById("summary").innerHTML = `
-		<table style="width:100%; border-collapse: collapse;">
+		<table style="width:400px; max-width:400px; table-layout:fixed; border-collapse: collapse; word-wrap:break-word;">
 		  <thead>
 			<tr style="background-color: #eef;">
-			  <th style="border: 1px solid #ccc; padding: 8px;">वस्तू</th>
-			  <th style="border: 1px solid #ccc; padding: 8px;">दर</th>
-			  <th style="border: 1px solid #ccc; padding: 8px;">प्रमाण</th>
-			  <th style="border: 1px solid #ccc; padding: 8px;">रक्कम</th>
+			  <th style="border: 1px solid #ccc; padding: 8px; ">वस्तू</th>
+			  <th style="border: 1px solid #ccc; padding: 8px; ">नग</th>
+			  <th style="border: 1px solid #ccc; padding: 8px; ">दर</th>
+			  <th style="border: 1px solid #ccc; padding: 8px; ">रक्कम</th>
 			</tr>
 		  </thead>
 		  <tbody>
 			<tr>
-			  <td style="border: 1px solid #ccc; padding: 8px;">${selectedPipeSize} mm गव्हाण</td>
-			  <td style="border: 1px solid #ccc; padding: 8px;">₹${pipePrice}</td>
+			  <td style="border: 1px solid #ccc; padding:">${selectedPipeSize} mm गव्हाण</td>
 			  <td style="border: 1px solid #ccc; padding: 8px;">${pipeQty}</td>
-			  <td style="border: 1px solid #ccc; padding: 8px;">₹${pipeTotal}</td>
+			  <td style="border: 1px solid #ccc; padding: 8px;">₹${pipePrice}</td>
+			  <td style="border: 1px solid #ccc; padding: 8px; text-align:right; ">₹${pipeTotal}</td>
 			</tr>
 			<tr>
 			  <td style="border: 1px solid #ccc; padding: 8px;">${standLabel}</td>
-			  <td style="border: 1px solid #ccc; padding: 8px;">₹${standPrice}</td>
 			  <td style="border: 1px solid #ccc; padding: 8px;">${standQty}</td>
-			  <td style="border: 1px solid #ccc; padding: 8px;">₹${standTotal}</td>
+			  <td style="border: 1px solid #ccc; padding: 8px;">₹${standPrice}</td>
+			  <td style="border: 1px solid #ccc; padding: 8px; text-align:right;">₹${standTotal}</td>
 			</tr>
 			<tr>
-			  <td style="border: 1px solid #ccc; padding: 8px;">साइड कॅप्स</td>
-			  <td style="border: 1px solid #ccc; padding: 8px;">₹${capPrice}</td>
+			  <td style="border: 1px solid #ccc; padding: 8px;">कॅप</td>
 			  <td style="border: 1px solid #ccc; padding: 8px;">${capsQty}</td>
-			  <td style="border: 1px solid #ccc; padding: 8px;">₹${capTotal}</td>
+			  <td style="border: 1px solid #ccc; padding: 8px;">₹${capPrice}</td>
+			  <td style="border: 1px solid #ccc; padding: 8px; text-align:right;">₹${capTotal}</td>
 			</tr>
 			
 			<tr style="font-weight: bold; background-color: #f9f9f9;">
 			  <td colspan="3" style="border: 1px solid #ccc; padding: 10px;">एकूण</td>
-			  <td style="border: 1px solid #ccc; padding: 10px;">₹${total}/-</td>
+			  <td style="border: 1px solid #ccc; padding: 10px; text-align:right;">₹${total}/-</td>
 			</tr>
 		  </tbody>
 		</table>
@@ -443,7 +475,7 @@
     function populatePipeQty() {
       const select = document.getElementById("pipeQty");
       select.innerHTML = "";
-      for (let i = 0; i <= 20; i++) {
+      for (let i = 0; i <= 100; i++) {
         const opt = document.createElement("option");
         opt.value = i;
         opt.text = i;
@@ -454,7 +486,7 @@
     function populateCapsQty() {
       const select = document.getElementById("capsQty");
       select.innerHTML = "";
-      for (let i = 0; i <= 20; i++) {
+      for (let i = 0; i <= 100; i++) {
         const opt = document.createElement("option");
         opt.value = i;
         opt.text = i;
@@ -463,66 +495,6 @@
       }
     }
 
-    function sendWhatsApp() {
-      const name = document.getElementById("customerName").value.trim();
-      const phone = document.getElementById("customerPhone").value.trim();
-      const pipeQty = parseInt(document.getElementById("pipeQty").value);
-      const standQty = parseInt(document.getElementById("standQty").value);
-      const capsQty = parseInt(document.getElementById("capsQty").value);
-      const pipePrice = prices.pipe[selectedPipeSize];
-
-      const transport = parseInt(document.getElementById("transportCost")?.value || 0);
-
-      let standPrice, standLabel;
-      if (selectedPipeSize === 400) {
-        standPrice = prices.stand[400];
-        standLabel = "स्टँड";
-      } 
-      else if (selectedPipeSize === 800) {
-        standPrice = prices.stand[800];
-        standLabel = "स्टँड";    }  
-
-      else if (selectedStandShape === 'Y' && selectedPipeSize === 600) {
-        standPrice = prices.stand[600][selectedYStandWidth];
-        standLabel = selectedYStandWidth === 'Y6' ? '6 इंच Y स्टँड' : '4 इंच Y स्टँड';
-      } else {
-        standPrice = prices.stand[selectedPipeSize][selectedStandShape];
-        standLabel = selectedStandShape === 'Square' ? 'चौकोनी स्टँड' : `${selectedStandShape} स्टँड`;
-      }
-
-      const capPrice = prices.cap[selectedPipeSize];
-
-      const pipeTotal = pipeQty * pipePrice;
-      const standTotal = standQty * standPrice;
-      const capTotal = capsQty * capPrice;
-      const total = pipeTotal + standTotal + capTotal + transport;
-
-      const msg =
-
-        `                            *रसळ सेल्स* 
-*लोणी रोड, कोल्हार-भगवतीपूर, ता. राहाता, जि. अहमदनगर*
-
- *गव्हाण कोटेशन*
-
-\`\`\`
-वस्तू           दर × प्रमाण = रक्कम
-----------------------------------
-${selectedPipeSize} mm गव्हाण  ₹${pipePrice} × ${pipeQty}   = ₹${pipeTotal}
-${standLabel.padEnd(16)} ₹${standPrice} × ${standQty}   = ₹${standTotal}
-साइड कॅप्स      ₹${capPrice} × ${capsQty}   = ₹${capTotal}
-वाहतूक खर्च                 = ₹${transport}
-
-----------------------------------
-एकूण                     = ₹${total}/-
-\`\`\`
-
-👤 *ग्राहकाचे नाव:* ${name}
-📞 *फोन नंबर:* ${phone}`;
-
-      const url = `https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`;
-      window.open(url, "_blank");
-
-    }
 
     function startVoicePhone() {
       if ('webkitSpeechRecognition' in window) {
@@ -541,6 +513,184 @@ ${standLabel.padEnd(16)} ₹${standPrice} × ${standQty}   = ₹${standTotal}
         alert("आपला ब्राउझर आवाज ओळखत नाही.");
       }
     }
+
+    function generateInvoiceImage() {
+
+      const name = document.getElementById("customerName").value.trim();
+      const phone = document.getElementById("customerPhone").value.trim();
+      const transport = parseInt(document.getElementById("transportCost")?.value || 0);
+
+      const pipeQty = parseInt(document.getElementById("pipeQty").value);
+      const standQty = parseInt(document.getElementById("standQty").value);
+      const capsQty = parseInt(document.getElementById("capsQty").value);
+      const pipePrice = prices.pipe[selectedPipeSize];
+
+      let paymentStatus = document.querySelector('input[name="paymentStatus"]:checked').value;
+
+
+      let standPrice, standLabel;
+      if (selectedPipeSize === 400) {
+        standPrice = prices.stand[400];
+        standLabel = "स्टँड";
+      } else if (selectedPipeSize === 800) {
+        standPrice = prices.stand[800];
+        standLabel = "स्टँड";
+      } else if (selectedStandShape === 'Y' && selectedPipeSize === 600) {
+        standPrice = prices.stand[600][selectedYStandWidth];
+        standLabel = selectedYStandWidth === 'Y6' ? '6 इंच Y स्टँड' : '4 इंच Y स्टँड';
+      } else {
+        standPrice = prices.stand[selectedPipeSize][selectedStandShape];
+        standLabel = selectedStandShape === 'Square' ? 'चौकोनी स्टँड' : `${selectedStandShape} स्टँड`;
+      }
+
+      const capPrice = prices.cap[selectedPipeSize];
+
+      const pipeTotal = pipeQty * pipePrice;
+      const standTotal = standQty * standPrice;
+      const capTotal = capsQty * capPrice;
+      const total = pipeTotal + standTotal + capTotal + transport;
+
+
+      let paidA;
+      if (paymentStatus === "पेमेंट दिले") {
+        paidA = parseInt(document.getElementById("paidAmount").value || total);
+      }
+
+      else if (paymentStatus === "पेमेंट बाकी") {
+        paidA = 0;
+
+      }
+
+      const remainingAmount = total - paidA;
+
+
+
+      //const today = new Date().toLocaleDateString();
+
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');  // Months are 0-based
+      const year = now.getFullYear();
+      const today = `${day}/${month}/${year}`;
+
+
+      const preview = document.getElementById("invoicePreview");
+      preview.innerHTML = `
+		<html>
+		<head>
+		  <title>गव्हाण कोटेशन  श्री  </title>
+		  <style>
+			body { font-family: 'Segoe UI', sans-serif; padding: 20px; }
+			
+			.company-info { text-align: center; }
+			.date { text-align: right; font-size: 16px; }
+			table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+			th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+			th { background-color: #eef; }
+		  </style>
+		</head>
+		<body>
+			<h2 style="text-align:center; ">  || श्री  ||</h2>
+			
+			<div class="header">
+		  
+				<div class="company-info">
+				  
+				  <h2>रसाळ सिमेंट प्रॉडक्ट्स</h2>
+				  <p>लोणी रोड, कोल्हार-भगवतीपूर, ता. राहाता, जि. अहिल्यानगर<br>Mob. 8805579296, 9623266922</p>
+				</div>
+			
+			</div>
+			
+		  <h3 style="text-align:center; margin-top: 30px; margin-bottom: 30px; ">गव्हाण कोटेशन</h3>
+		  
+		  <div class="date">
+				दिनांक: ${today}
+			</div>
+			
+		  <p><strong>ग्राहकाचे नाव:</strong> ${name}</p>
+		  <p><strong>फोन नंबर:</strong> ${phone}</p>
+
+		  <table>
+			<thead>
+			  <tr>
+				<th>वस्तू</th>
+				<th style="text-align:center;" >नग</th>
+				<th style="text-align:center;" >दर</th>
+				<th style="text-align:center;" >रक्कम</th>
+			  </tr>
+			</thead>
+			<tbody>
+			  <tr>
+				<td>${selectedPipeSize} mm गव्हाण</td>
+				<td style="text-align:center;">${pipeQty}</td>
+				<td style="text-align:center;">₹${pipePrice}</td>
+				<td style="text-align:right;">₹${pipeTotal}</td>
+			  </tr>
+			  <tr>
+				<td>${standLabel}</td>
+				<td style="text-align:center;">${standQty}</td>
+				<td style="text-align:center;">₹${standPrice}</td>
+				<td style="text-align:right;">₹${standTotal}</td>
+			  </tr>
+			  <tr>
+				<td>कॅप</td>
+				<td style="text-align:center;">${capsQty}</td>
+				<td style="text-align:center;">₹${capPrice}</td>
+				<td style="text-align:right;" >₹${capTotal}</td>
+			  </tr>
+			  <tr>
+				<td>वाहतूक खर्च</td>
+				<td colspan="2"></td>
+				<td style="text-align:right;">₹${transport}</td>
+			  </tr>
+			  
+			  <tr style="font-weight: bold;">
+				<td colspan="3">एकूण</td>
+				<td style="text-align:right;">₹${total}/-</td>
+			  </tr>
+			</tbody>
+		  </table>
+		  
+		  <p><strong>पेमेंट स्थिती:</strong> ${paymentStatus}</p>
+		  <p><strong>दिलेली रक्कम:</strong> ₹${paidA}/-</p>
+		  <p><strong>रक्कम बाकी :</strong> ₹${remainingAmount}/-</p>
+
+		  
+		</body>
+		</html>
+	  `;
+
+      preview.style.display = 'block';
+
+      html2canvas(preview, {
+        scale: 4,               // High scale for true pixel density
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        width: preview.scrollWidth,
+        height: preview.scrollHeight
+
+      }).then(canvas => {
+        const link = document.createElement("a");
+        link.download = `गव्हाण-कोटेशन-${today}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+
+
+      });
+
+
+    }
+
+    function openWhatsAppChat() {
+
+      const phone = document.getElementById("customerPhone").value.trim();
+      const cleanPhone = phone.replace(/\D/g, '');
+      const whatsappURL = `https://wa.me/91${cleanPhone}`;
+      window.open(whatsappURL, '_blank');
+
+    }
+
 
     function startVoice() {
       if ('webkitSpeechRecognition' in window) {
@@ -563,3 +713,5 @@ ${standLabel.padEnd(16)} ₹${standPrice} × ${standQty}   = ₹${standTotal}
 </body>
 
 </html>
+
+
